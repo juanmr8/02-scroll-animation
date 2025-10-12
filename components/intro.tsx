@@ -1,19 +1,52 @@
 'use client';
 import { motion, MotionValue, useScroll, useTransform } from 'framer-motion';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+
+// Calculate pace based on image size - bigger images move faster
+const calculatePaceFromSize = (size: string): number => {
+  const sizeNum = parseFloat(size);
+  // Base pace calculation: size 4 = 0.5x, size 8 = 1x, size 12 = 1.5x
+  // Formula: (size / 8) * 1.0, with a minimum of 0.3 and maximum of 2.0
+  const pace = Math.max(0.3, Math.min(2.0, (sizeNum / 8) * 1.0));
+  return pace;
+};
 
 const images = [
+  {
+    src: '/imgs/img-7.png',
+    alt: 'Image 7',
+    className: 'absolute top-[34%] left-[5%]',
+    size: '4',
+  },
+  {
+    src: '/imgs/img-8.png',
+    alt: 'Image 8',
+    className: 'absolute top-[80%] left-[15%]',
+    size: '4',
+  },
+  {
+    src: '/imgs/img-9.png',
+    alt: 'Image 9',
+    className: 'absolute top-[0] left-[33%]',
+    size: '4',
+  },
+  {
+    src: '/imgs/img-13.png',
+    alt: 'Image 9',
+    className: 'absolute top-[85%] left-[53%]',
+    size: '4',
+  },
+  {
+    src: '/imgs/img-10.png',
+    alt: 'Image 10',
+    className: 'absolute top-[5%] left-[5%]',
+    size: '4',
+  },
   {
     src: '/imgs/img-1.png',
     alt: 'Image 1',
     className: 'absolute top-[5%] left-[50%]',
     size: '8',
-  },
-  {
-    src: '/imgs/img-2.png',
-    alt: 'Image 2',
-    className: 'absolute top-[15%] left-[25%]',
-    size: '12',
   },
   {
     src: '/imgs/img-3.png',
@@ -22,10 +55,10 @@ const images = [
     size: '8',
   },
   {
-    src: '/imgs/img-4.png',
-    alt: 'Image 4',
-    className: 'absolute top-[32%] left-[75%]',
-    size: '12',
+    src: '/imgs/img-6.png',
+    alt: 'Image 6',
+    className: 'absolute bottom-[15%] right-[10%]',
+    size: '8',
   },
   {
     src: '/imgs/img-5.png',
@@ -34,34 +67,28 @@ const images = [
     size: '10',
   },
   {
-    src: '/imgs/img-6.png',
-    alt: 'Image 1',
-    className: 'absolute bottom-[15%] right-[10%]',
-    size: '8',
-  },
-  {
-    src: '/imgs/img-7.png',
+    src: '/imgs/img-2.png',
     alt: 'Image 2',
-    className: 'absolute top-[34%] left-[5%]',
-    size: '4',
+    className: 'absolute top-[15%] left-[25%]',
+    size: '12',
   },
   {
-    src: '/imgs/img-8.png',
-    alt: 'Image 3',
-    className: 'absolute top-[80%] left-[15%]',
-    size: '4',
-  },
-  {
-    src: '/imgs/img-9.png',
+    src: '/imgs/img-4.png',
     alt: 'Image 4',
-    className: 'absolute top-[0] left-[33%]',
-    size: '4',
+    className: 'absolute top-[32%] left-[75%]',
+    size: '12',
   },
   {
-    src: '/imgs/img-10.png',
-    alt: 'Image 5',
-    className: 'absolute top-[5%] left-[5%]',
-    size: '4',
+    src: '/imgs/img-11.png',
+    alt: 'Image 4',
+    className: 'absolute top-[52%] left-[15%]',
+    size: '14',
+  },
+  {
+    src: '/imgs/img-12.png',
+    alt: 'Image 12',
+    className: 'absolute top-[62%] left-[35%]',
+    size: '14',
   },
 ];
 
@@ -106,27 +133,39 @@ const positions = [
     initial: { translateZ: -400, opacity: 0 },
     animate: { translateZ: 0, opacity: 1 },
   },
+  {
+    initial: { translateZ: -450, opacity: 0 },
+    animate: { translateZ: 0, opacity: 1 },
+  },
+  {
+    initial: { translateZ: -450, opacity: 0 },
+    animate: { translateZ: 0, opacity: 1 },
+  },
+  {
+    initial: { translateZ: -450, opacity: 0 },
+    animate: { translateZ: 0, opacity: 1 },
+  },
 ];
 
 function IntroComponent() {
   const ref = useRef(null);
-  const [completedAnimations, setCompletedAnimations] = useState<Set<number>>(
-    new Set()
-  );
+  const [completedCount, setCompletedCount] = useState(0);
 
   const { scrollYProgress } = useScroll({
     target: ref,
-    offset: ['start start', '200vh'],
+    offset: ['start start', '300vh'],
   });
 
-  const animationComplete =
-    completedAnimations.size === images.length && completedAnimations.size > 0;
+  const introAnimationComplete =
+    completedCount === images.length && completedCount > 0;
 
-  const handleImageAnimationComplete = (index: number) => {
-    setCompletedAnimations(prev => {
-      const newSet = new Set(prev);
-      newSet.add(index);
-      return newSet;
+  const handleImageAnimationComplete = () => {
+    setCompletedCount(prev => {
+      const newCount = prev + 1;
+      if (newCount === images.length) {
+        document.body.classList.remove('locked-scroll');
+      }
+      return newCount;
     });
   };
 
@@ -135,32 +174,34 @@ function IntroComponent() {
       ref={ref}
       className='relative min-h-screen w-full'
       style={{
-        height: animationComplete ? '400vh' : '100vh',
+        height: introAnimationComplete ? '400vh' : '100vh',
       }}
     >
-      <Text scrollYProgress={scrollYProgress} />
-      <div
-        style={{ perspective: '1000px' }}
-        className='fixed h-full max-h-screen min-h-screen w-full overflow-hidden'
-      >
-        {images.map((image, idx) => (
-          <Image
-            key={idx}
-            src={image.src}
-            alt={image.alt}
-            className={`${image.className} pointer-events-none`}
-            index={idx}
-            scrollYProgress={scrollYProgress}
-            onAnimationComplete={() => handleImageAnimationComplete(idx)}
-            size={image.size}
-          />
-        ))}
+      <div className='sticky top-0 h-[100vh] min-h-screen'>
+        <Mask scrollYProgress={scrollYProgress} />
+        <div
+          style={{ perspective: '1000px' }}
+          className='absolute top-0 h-full w-full overflow-hidden'
+        >
+          {images.map((image, idx) => (
+            <Image
+              key={idx}
+              src={image.src}
+              alt={image.alt}
+              className={`${image.className} pointer-events-none`}
+              index={idx}
+              scrollYProgress={scrollYProgress}
+              onAnimationComplete={handleImageAnimationComplete}
+              size={image.size}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );
 }
 
-const Text = ({
+const Mask = ({
   scrollYProgress,
 }: {
   scrollYProgress: MotionValue<number>;
@@ -176,7 +217,7 @@ const Text = ({
 
   return (
     <motion.div
-      className='fixed top-0 left-0 h-full w-full overflow-hidden'
+      className='absolute top-0 left-0 h-full w-full'
       style={
         {
           '--p1': p1,
@@ -252,9 +293,12 @@ const Image = ({
 }) => {
   const [animationComplete, setAnimationComplete] = useState(false);
 
-  const z = useTransform(scrollYProgress, [0, 1], [0, 800]);
+  const pace = calculatePaceFromSize(size);
+
+  const z = useTransform(scrollYProgress, [0, 1], [0, 800 * pace]);
 
   const handleAnimationComplete = () => {
+    if (animationComplete) return;
     setAnimationComplete(true);
     onAnimationComplete();
   };
@@ -262,10 +306,6 @@ const Image = ({
   return (
     <motion.div
       className={className}
-      style={{
-        transformStyle: 'preserve-3d',
-        width: 'fit-content',
-      }}
       // Use variants for initial animation, then switch to style-based control
       {...(!animationComplete
         ? {
@@ -274,7 +314,7 @@ const Image = ({
             animate: 'animate',
             transition: {
               duration: 1.5,
-              ease: [0.25, 1, 0.5, 1],
+              ease: [0, 0.55, 0.45, 1],
               delay: Math.random(),
             },
           }

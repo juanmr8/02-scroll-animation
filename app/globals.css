@@ -2,8 +2,14 @@
 
 html {
   overflow-x: hidden;
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* Internet Explorer 10+ */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  overflow: hidden;
+}
+
+body.locked-scroll {
+  overflow: hidden;
+  height: 100svh;
 }
 
 :root {
