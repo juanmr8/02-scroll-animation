@@ -7,7 +7,7 @@ const calculatePaceFromSize = (size: string): number => {
   const sizeNum = parseFloat(size);
   // Base pace calculation: size 4 = 0.5x, size 8 = 1x, size 12 = 1.5x
   // Formula: (size / 8) * 1.0, with a minimum of 0.3 and maximum of 2.0
-  const pace = Math.max(0.3, Math.min(2.0, (sizeNum / 8) * 1.0));
+  const pace = Math.max(0.3, Math.min(2.0, (sizeNum / 8)));
   return pace;
 };
 
@@ -295,7 +295,7 @@ const Image = ({
 
   const pace = calculatePaceFromSize(size);
 
-  const z = useTransform(scrollYProgress, [0, 1], [0, 800 * pace]);
+  const z = useTransform(scrollYProgress, [0, .54], [0, 800 * pace]);
 
   const handleAnimationComplete = () => {
     if (animationComplete) return;
